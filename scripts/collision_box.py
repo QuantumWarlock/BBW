@@ -86,41 +86,62 @@ def collision(balls):
             dr = m.sqrt( drs )
             if( dr < d ):
                 # Over-Shot Collision
-                xi = balls[i].x - 10.0*Ball.dt*balls[i].vx
-                yi = balls[i].y - 10.0*Ball.dt*balls[i].vy
-                xj = balls[j].x - 10.0*Ball.dt*balls[j].vx
-                yj = balls[j].y - 10.0*Ball.dt*balls[j].vy
-                drx = xi - xj
-                dry = yi - yj
-                dvx = balls[i].vx - balls[j].vx
-                dvy = balls[i].vy - balls[j].vy
-                drs = d*d
-                a = dvx*dvx + dvy*dvy
-                b = 2.0*(drx*dvx + dry*dvy)
-                c = drx*drx + dry*dry - drs
-                s = b*b - 4.0*a*c
-                tp = (-b + m.sqrt(s))/(2.0*a)
-                tm = (-b - m.sqrt(s))/(2.0*a)
-                if( tp>0 and tm>0 ):
-                    tc = min(tp,tm)
-                elif( tm<0 ):
-                    tc = tp
-                else:
-                    tc = tm
-                xci = xi + tc*balls[i].vx
-                yci = yi + tc*balls[i].vy
-                xcj = xj + tc*balls[j].vx
-                ycj = yj + tc*balls[j].vy
-                drx = xci - xcj
-                dry = yci - ycj
-                fac = (dvx*drx + dvy*dry)/drs
-                delvx = fac*drx
-                delvy = fac*dry
-                balls[i].vx -= delvx
-                balls[i].vy -= delvy
-                balls[j].vx += delvx
-                balls[j].vy += delvy
-            elif( dr <= d ):
+                # TODO: Add switch for method selection
+                if( False ):
+                    # Physics Based Collision Correction
+                    xi = balls[i].x - 10.0*Ball.dt*balls[i].vx
+                    yi = balls[i].y - 10.0*Ball.dt*balls[i].vy
+                    xj = balls[j].x - 10.0*Ball.dt*balls[j].vx
+                    yj = balls[j].y - 10.0*Ball.dt*balls[j].vy
+                    drx = xi - xj
+                    dry = yi - yj
+                    dvx = balls[i].vx - balls[j].vx
+                    dvy = balls[i].vy - balls[j].vy
+                    drs = d*d
+                    a = dvx*dvx + dvy*dvy
+                    b = 2.0*(drx*dvx + dry*dvy)
+                    c = drx*drx + dry*dry - drs
+                    s = b*b - 4.0*a*c
+                    tp = (-b + m.sqrt(s))/(2.0*a)
+                    tm = (-b - m.sqrt(s))/(2.0*a)
+                    if( tp>0 and tm>0 ):
+                        tc = min(tp,tm)
+                    elif( tm<0 ):
+                        tc = tp
+                    else:
+                        tc = tm
+                    xci = xi + tc*balls[i].vx
+                    yci = yi + tc*balls[i].vy
+                    xcj = xj + tc*balls[j].vx
+                    ycj = yj + tc*balls[j].vy
+                    drx = xci - xcj
+                    dry = yci - ycj
+                elif( True ):
+                    # Game Engine Style Collision Correction
+                    offset = (d - dr)/2.0
+                    dx = offset*drx/dr
+                    dy = offset*dry/dr
+                    xiNew = balls[i].x + dx
+                    yiNew = balls[i].y + dy
+                    xjNew = balls[j].x - dx
+                    yjNew = balls[j].y - dy
+                    drx = xiNew - xjNew
+                    dry = yiNew - yjNew
+                    drs = d*d
+                    dvx = balls[i].vx - balls[j].vx
+                    dvy = balls[i].vy - balls[j].vy
+                    fac = (dvx*drx + dvy*dry)/drs
+                    delvx = fac*drx
+                    delvy = fac*dry
+                    balls[i].vx -= delvx
+                    balls[i].vy -= delvy
+                    balls[j].vx += delvx
+                    balls[j].vy += delvy
+                    balls[i].x = xiNew
+                    balls[i].y = yiNew
+                    balls[j].x = xjNew
+                    balls[j].y = yjNew
+            elif( dr == d ):
                 # Perfect Collision!
                 # This is going to be a VERY rare event ...
                 dvx = balls[i].vx - balls[j].vx
@@ -159,7 +180,7 @@ def animate(i):
 
 
 ##### Movie Time!
-numBalls = 10
+numBalls = 25
 ballList = []
 xList = []
 yList = []
@@ -177,8 +198,8 @@ ax.set_title('Bouncing Balls!')
 ax.set_xlim([0,10])
 ax.set_ylim([0,10])
 tText = ax.text(4.5, 9.5, 'Time = ')
-# scat = ax.scatter(xList,yList,c=xList,cmap='gist_rainbow')
-scat = ax.scatter(xList,yList,c=xList,cmap='seismic')
+scat = ax.scatter(xList,yList,c=xList,cmap='gist_rainbow')
+# scat = ax.scatter(xList,yList,c=xList,cmap='seismic')
 
 
 ani = animation.FuncAnimation(fig, animate, frames=101,
@@ -188,12 +209,6 @@ ani = animation.FuncAnimation(fig, animate, frames=101,
 # Uncomment next two lines to write file to disk.
 #pwriter = animation.PillowWriter(fps=5, metadata=dict(artist='Dr. Ryan Clement'))
 #ani.save('../movies/bouncing_balls.gif',writer=pwriter)
-
-# x = [5,5]
-# y = [5,5.3]
-# plt.plot(x,y,'bo',ms=5)
-# plt.xlim([0,10])
-# plt.ylim([0,10])
 
 plt.show()
 ##### END: Movie Time
